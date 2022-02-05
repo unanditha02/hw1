@@ -23,7 +23,7 @@ class VOCDataset(Dataset):
     for i in range(len(CLASS_NAMES)):
         INV_CLASS[CLASS_NAMES[i]] = i
 
-    # TODO: Adjust data_dir according to where **you** stored the data
+    # TODO Q1.2: Adjust data_dir according to where **you** stored the data
     def __init__(self, split, size, data_dir='VOCdevkit/VOC2007/'):
         super().__init__()
         self.split = split
@@ -51,14 +51,14 @@ class VOCDataset(Dataset):
 
     def preload_anno(self):
         """
-        :return: a list of lables. each element is in the form of [class, weight],
+        :return: a list of labels. each element is in the form of [class, weight],
          where both class and weight are a numpy array in shape of [20],
         """
         label_list = []
         for index in self.index_list:
             fpath = os.path.join(self.ann_dir, index + '.xml')
             tree = ET.parse(fpath)
-            # TODO: insert your code here, preload labels
+            # TODO Q1.2: insert your code here, preload labels
 
         return label_list
 
@@ -72,7 +72,7 @@ class VOCDataset(Dataset):
         """
         findex = self.index_list[index]
         fpath = os.path.join(self.img_dir, findex + '.jpg')
-        # TODO: insert your code here. hint: read image, find the labels and weight.
+        # TODO Q1.2: insert your code here. hint: read image, find the labels and weight.
 
         image = torch.FloatTensor(img)
         label = torch.FloatTensor(lab_vec)

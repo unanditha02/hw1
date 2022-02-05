@@ -39,6 +39,7 @@ class ARGS(object):
     lr = 1.0
     # Learning rate step gamma
     gamma = 0.7
+    step_size = 1
     # how many batches to wait before logging training status
     log_every = 100
     # how many batches to wait before evaluating model
@@ -49,6 +50,8 @@ class ARGS(object):
     save_freq=-1
     # set true if using GPU during training
     use_cuda = False
+    # input size
+    inp_size = 224
 
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
@@ -68,10 +71,10 @@ class ARGS(object):
         return torch.device("cuda" if self.use_cuda else "cpu")
 
 
-def get_data_loader(name='voc', train=True, batch_size=64, split='train'):
+def get_data_loader(name='voc', train=True, batch_size=64, split='train', inp_size=224):
     if name == 'voc':
         from voc_dataset import VOCDataset
-        dataset = VOCDataset(split, 64)
+        dataset = VOCDataset(split, inp_size)
     else:
         raise NotImplementedError
 
@@ -123,7 +126,7 @@ def eval_dataset_map(model, device, test_loader):
     """
     with torch.no_grad():
         for data, target, wgt in test_loader:
-            ## TODO insert your code here
+            # TODO Q1.3: insert your code here
             gt, pred, valid = None, None, None
             pass
     AP = compute_ap(gt, pred, valid)
