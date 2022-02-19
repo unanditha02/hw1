@@ -3,8 +3,10 @@
 # --------------------------------------------------------
 
 from __future__ import print_function
+from xml.dom.minidom import Element
 
 import imageio
+from matplotlib import transforms
 import numpy as np
 import os
 import xml.etree.ElementTree as ET
@@ -13,7 +15,7 @@ import torch
 import torch.nn
 from PIL import Image
 from torch.utils.data import Dataset
-
+import torchvision.transforms as T
 
 class VOCDataset(Dataset):
     CLASS_NAMES = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car',
@@ -24,7 +26,7 @@ class VOCDataset(Dataset):
         INV_CLASS[CLASS_NAMES[i]] = i
 
     # TODO Q1.2: Adjust data_dir according to where **you** stored the data
-    def __init__(self, split, size, data_dir='VOCdevkit/VOC2007/'):
+    def __init__(self, split, size, data_dir='../data/VOCdevkit/VOC2007/'):
         super().__init__()
         self.split = split
         self.data_dir = data_dir
@@ -59,7 +61,16 @@ class VOCDataset(Dataset):
             fpath = os.path.join(self.ann_dir, index + '.xml')
             tree = ET.parse(fpath)
             # TODO Q1.2: insert your code here, preload labels
-
+            root = tree.getroot()
+            classes = np.zeros(20, dtype=int)
+            weight = np.ones(20, dtype=int)
+            for obj in root.findall("./object"):
+                for i in range(len(self.CLASS_NAMES)):
+                    if obj.find('name').text == self.CLASS_NAMES[i]:
+                        classes[i] = 1
+                        if obj.find('difficult').text == 1:
+                            weight[i] = 0
+                label_list.append([classes, weight])
         return label_list
 
     def __getitem__(self, index):
@@ -73,7 +84,23 @@ class VOCDataset(Dataset):
         findex = self.index_list[index]
         fpath = os.path.join(self.img_dir, findex + '.jpg')
         # TODO Q1.2: insert your code here. hint: read image, find the labels and weight.
-
+        img = Image.open(fpath)
+        if self.split == 'trainval':
+            T_transform = T.Compose([
+                T.Resize((self.size, self.size)), 
+                T.RandomCrop(int(self.size*0.8)),
+                T.Resize((self.size, self.size)), 
+                T.RandomHorizontalFlip(),
+                T.ToTensor(),
+            ])
+        else:
+            T_transform = T.Compose([
+                T.CenterCrop(int(self.size*0.8)),
+                T.Resize((self.size, self.size)), 
+                T.ToTensor()]
+            )
+        img = T_transform(img)
+        lab_vec, wgt_vec = self.anno_list[index]
         image = torch.FloatTensor(img)
         label = torch.FloatTensor(lab_vec)
         wgt = torch.FloatTensor(wgt_vec)
