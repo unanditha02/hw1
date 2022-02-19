@@ -8,6 +8,7 @@ import torch
 import numpy as np
 import sklearn.metrics
 from torch.utils.data import DataLoader
+import torch.nn.functional as F
 
 
 class ARGS(object):
@@ -127,8 +128,13 @@ def eval_dataset_map(model, device, test_loader):
     with torch.no_grad():
         for data, target, wgt in test_loader:
             # TODO Q1.3: insert your code here
-            gt, pred, valid = None, None, None
-            pass
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            pred = F.softmax(output,dim=1).numpy()
+            valid = wgt.numpy()
+            gt = target.numpy()
+            # gt, pred, valid = None, None, wgt
+            # pass
     AP = compute_ap(gt, pred, valid)
 
     mAP = np.mean(AP)

@@ -3,13 +3,14 @@
 # Modified by Sudeep Dasari
 # --------------------------------------------------------
 from __future__ import print_function
+from functools import total_ordering
 
 import torch
 import numpy as np
 
 import utils
 from voc_dataset import VOCDataset
-
+# from torch.utils.tensorboard import SummaryWriter
 
 def save_this_epoch(args, epoch):
     if args.save_freq > 0 and (epoch+1) % args.save_freq == 0:
@@ -23,7 +24,7 @@ def save_model(epoch, model_name, model):
     # TODO: Q2.2 Implement code for model saving
     filename = 'checkpoint-{}-epoch{}.pth'.format(
         model_name, epoch+1)
-    pass
+    torch.save(model, filename)
 
 
 def train(args, model, optimizer, scheduler=None, model_name='model'):
@@ -32,13 +33,14 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
         'voc', train=True, batch_size=args.batch_size, split='trainval', inp_size=args.inp_size)
     test_loader = utils.get_data_loader(
         'voc', train=False, batch_size=args.test_batch_size, split='test', inp_size=args.inp_size)
-
+    # writer = SummaryWriter()
     # Ensure model is in correct mode and on right device
     model.train()
     model = model.to(args.device)
 
     cnt = 0
     for epoch in range(args.epochs):
+        total_loss = 0
         for batch_idx, (data, target, wgt) in enumerate(train_loader):
             # Get a batch of data
             data, target, wgt = data.to(args.device), target.to(args.device), wgt.to(args.device)
@@ -47,7 +49,8 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
             output = model(data)
             # Calculate the loss
             # TODO Q1.4: your loss for multi-label classification
-            loss = 0
+            loss = torch.nn.MultiLabelSoftMarginLoss()(output, target)
+            total_loss += loss.item()
             # Calculate gradient w.r.t the loss
             loss.backward()
             # Optimizer takes one step
@@ -55,6 +58,7 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
             # Log info
             if cnt % args.log_every == 0:
                 # TODO Q1.5: Log training loss to tensorboard
+                # writer.add_scalar("mAP", total_loss, epoch)
                 print('Train Epoch: {} [{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, cnt, 100. * batch_idx / len(train_loader), loss.item()))
                 # TODO Q3.2: Log histogram of gradients
@@ -63,6 +67,7 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
                 model.eval()
                 ap, map = utils.eval_dataset_map(model, args.device, test_loader)
                 # TODO Q1.5: Log MAP to tensorboard
+                # writer.add_scalar("mAP", map, epoch)
                 model.train()
             cnt += 1
 
