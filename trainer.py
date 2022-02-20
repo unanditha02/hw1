@@ -10,7 +10,7 @@ import numpy as np
 
 import utils
 from voc_dataset import VOCDataset
-# from torch.utils.tensorboard import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 def save_this_epoch(args, epoch):
     if args.save_freq > 0 and (epoch+1) % args.save_freq == 0:
@@ -22,7 +22,7 @@ def save_this_epoch(args, epoch):
 
 def save_model(epoch, model_name, model):
     # TODO: Q2.2 Implement code for model saving
-    filename = 'checkpoint-{}-epoch{}.pth'.format(
+    filename = 'model_params/checkpoint-{}-epoch{}.pth'.format(
         model_name, epoch+1)
     torch.save(model, filename)
 
@@ -33,7 +33,7 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
         'voc', train=True, batch_size=args.batch_size, split='trainval', inp_size=args.inp_size)
     test_loader = utils.get_data_loader(
         'voc', train=False, batch_size=args.test_batch_size, split='test', inp_size=args.inp_size)
-    # writer = SummaryWriter()
+    writer = SummaryWriter()
     # Ensure model is in correct mode and on right device
     model.train()
     model = model.to(args.device)
@@ -58,7 +58,7 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
             # Log info
             if cnt % args.log_every == 0:
                 # TODO Q1.5: Log training loss to tensorboard
-                # writer.add_scalar("mAP", total_loss, epoch)
+                writer.add_scalar("mAP", total_loss, cnt)
                 print('Train Epoch: {} [{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, cnt, 100. * batch_idx / len(train_loader), loss.item()))
                 # TODO Q3.2: Log histogram of gradients
@@ -67,7 +67,7 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
                 model.eval()
                 ap, map = utils.eval_dataset_map(model, args.device, test_loader)
                 # TODO Q1.5: Log MAP to tensorboard
-                # writer.add_scalar("mAP", map, epoch)
+                writer.add_scalar("mAP", map, cnt)
                 model.train()
             cnt += 1
 
