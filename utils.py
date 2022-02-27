@@ -125,17 +125,20 @@ def eval_dataset_map(model, device, test_loader):
          AP (list): Average Precision for all classes
          MAP (float): mean average precision
     """
+    gt, pred, valid = [], [], []
     with torch.no_grad():
         for data, target, wgt in test_loader:
             # TODO Q1.3: insert your code here
             data, target = data.to(device), target.to(device)
             output = model(data)
-            pred = F.softmax(output,dim=1).numpy()
-            valid = wgt.numpy()
-            gt = target.numpy()
+            pred.append(torch.softmax(output,dim=1).cpu().detach().numpy())
+            valid.append(wgt.cpu().detach().numpy())
+            gt.append(target.cpu().detach().numpy())
             # gt, pred, valid = None, None, wgt
             # pass
-    AP = compute_ap(gt, pred, valid)
+    AP = compute_ap(np.concatenate(gt, axis=0), 
+                    np.concatenate(pred, axis=0), 
+                    np.concatenate(valid, axis=0))
 
     mAP = np.mean(AP)
     return AP, mAP
