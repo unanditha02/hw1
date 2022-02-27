@@ -40,7 +40,6 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
 
     cnt = 0
     for epoch in range(args.epochs):
-        total_loss = 0
         for batch_idx, (data, target, wgt) in enumerate(train_loader):
             # Get a batch of data
             data, target, wgt = data.to(args.device), target.to(args.device), wgt.to(args.device)
@@ -49,8 +48,8 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
             output = model(data)
             # Calculate the loss
             # TODO Q1.4: your loss for multi-label classification
-            loss = torch.nn.MultiLabelSoftMarginLoss()(output, target)
-            total_loss += loss.item()
+            criterion = torch.nn.MultiLabelSoftMarginLoss()
+            loss = criterion(output, target)
             # Calculate gradient w.r.t the loss
             loss.backward()
             # Optimizer takes one step
@@ -58,10 +57,13 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
             # Log info
             if cnt % args.log_every == 0:
                 # TODO Q1.5: Log training loss to tensorboard
-                writer.add_scalar("mAP", total_loss, cnt)
+                writer.add_scalar("Loss", loss.item(), cnt)
                 print('Train Epoch: {} [{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, cnt, 100. * batch_idx / len(train_loader), loss.item()))
                 # TODO Q3.2: Log histogram of gradients
+                for tag, param in model.named_parameters():
+                    if param.requires_grad:
+                        writer.add_histogram(tag, param.grad.data.cpu().numpy(), epoch)
             # Validation iteration
             if cnt % args.val_every == 0:
                 model.eval()
@@ -74,6 +76,7 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
         # TODO Q3.2: Log Learning rate
         if scheduler is not None:
             scheduler.step()
+            writer.add_scalar('Learning Rate', scheduler.get_last_lr()[0], epoch)
 
         # save model
         if save_this_epoch(args, epoch):
