@@ -70,7 +70,7 @@ class VOCDataset(Dataset):
                         classes[i] = 1
                         if obj.find('difficult').text == 1:
                             weight[i] = 0
-                label_list.append([classes, weight])
+            label_list.append([classes, weight])
         return label_list
 
     def __getitem__(self, index):
@@ -87,21 +87,21 @@ class VOCDataset(Dataset):
         img = Image.open(fpath)
         if self.split == 'trainval':
             T_transform = T.Compose([
-                T.Resize((self.size, self.size)), 
-                T.RandomCrop(int(self.size*0.8)),
-                T.Resize((self.size, self.size)), 
+                T.Resize(self.size), 
+                T.RandomCrop(self.size),
                 T.RandomHorizontalFlip(),
                 T.ToTensor(),
+                T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0,224, 0.225])
             ])
         else:
             T_transform = T.Compose([
-                T.CenterCrop(int(self.size*0.8)),
-                T.Resize((self.size, self.size)), 
-                T.ToTensor()]
-            )
-        img = T_transform(img)
+                T.Resize(self.size),
+                T.CenterCrop(self.size),
+                T.ToTensor(),
+                T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0,224, 0.225])
+            ])
+        image = T_transform(img)
         lab_vec, wgt_vec = self.anno_list[index]
-        image = torch.FloatTensor(img)
         label = torch.FloatTensor(lab_vec)
         wgt = torch.FloatTensor(wgt_vec)
         return image, label, wgt
