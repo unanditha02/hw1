@@ -24,7 +24,7 @@ def save_model(epoch, model_name, model):
     # TODO: Q2.2 Implement code for model saving
     filename = 'model_params/checkpoint-{}-epoch{}.pth'.format(
         model_name, epoch+1)
-    torch.save(model, filename)
+    torch.save(model.state_dict(), filename)
 
 
 def train(args, model, optimizer, scheduler=None, model_name='model'):
@@ -48,7 +48,8 @@ def train(args, model, optimizer, scheduler=None, model_name='model'):
             output = model(data)
             # Calculate the loss
             # TODO Q1.4: your loss for multi-label classification
-            criterion = torch.nn.MultiLabelSoftMarginLoss()
+            # criterion = torch.nn.MultiLabelSoftMarginLoss()
+            criterion = torch.nn.BCEWithLogitsLoss()
             loss = criterion(output, target)
             # Calculate gradient w.r.t the loss
             loss.backward()
