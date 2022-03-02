@@ -131,7 +131,8 @@ def eval_dataset_map(model, device, test_loader):
             # TODO Q1.3: insert your code here
             data, target = data.to(device), target.to(device)
             output = model(data)
-            pred.append(torch.softmax(output,dim=1).cpu().detach().numpy())
+            # pred.append(torch.softmax(output,dim=1).cpu().detach().numpy())
+            pred.append(torch.sigmoid(output).cpu().detach().numpy()) # feb 28, q2
             valid.append(wgt.cpu().detach().numpy())
             gt.append(target.cpu().detach().numpy())
             # gt, pred, valid = None, None, wgt
