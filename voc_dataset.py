@@ -91,14 +91,14 @@ class VOCDataset(Dataset):
                 T.RandomCrop(self.size),
                 T.RandomHorizontalFlip(),
                 T.ToTensor(),
-                T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0,224, 0.225])
+                T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
             ])
         else:
             T_transform = T.Compose([
                 T.Resize(self.size),
                 T.CenterCrop(self.size),
                 T.ToTensor(),
-                T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0,224, 0.225])
+                T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
             ])
         image = T_transform(img)
         lab_vec, wgt_vec = self.anno_list[index]
